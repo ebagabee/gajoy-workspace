@@ -1,16 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   reactStrictMode: true,
   swcMinify: true,
   images: {
-    domains: ["github.com"],
+    domains: ['github.com'],
   },
-  eslint: {
-    ignoreDuringBuilds: true,
+  webpack: (config) => {
+    config.resolve.fallback = { fs: false };
+    return config;
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-};
+}
 
 module.exports = nextConfig;
