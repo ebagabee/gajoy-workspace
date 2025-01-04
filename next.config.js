@@ -2,16 +2,15 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-  typescript: {
-    ignoreBuildErrors: true,
+  images: {
+    domains: ["github.com"],
   },
   eslint: {
     ignoreDuringBuilds: true,
   },
-  images: {
-    domains: ['github.com'],
-  }
-  // Removemos a seção experimental.turbo que estava causando erro
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 module.exports = nextConfig;
