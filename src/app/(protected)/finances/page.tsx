@@ -1,7 +1,226 @@
-export default function Finances() {
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { TextArea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon, Pencil, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  financeService,
+  type FinanceItem,
+  type FinanceInput,
+} from "@/services/finances";
+import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+export default function FinancesPage() {
+  const [items, setItems] = useState<FinanceItem[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [date, setDate] = useState<Date>();
+  const [editingItem, setEditingItem] = useState<FinanceItem | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [totals, setTotals] = useState({ income: 0, expense: 0 });
+  const { toast } = useToast();
+
+  useEffect(() => {
+    loadItems();
+    loadTotals();
+  }, []);
+
+  const loadItems = async () => {
+    try {
+      const data = await financeService.getAllItems();
+      setItems(data);
+    } catch (error) {
+      console.log(error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os itens.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadTotals = async () => {
+    try {
+      const totalsData = await financeService.getTotals();
+      setTotals(totalsData);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    setIsLoading(true);
+
+    try {
+      const formData = new FormData(e.currentTarget);
+
+      const financeData: FinanceInput = {
+        start_date:
+          date?.toISOString().split("T")[0] ||
+          new Date().toISOString().split("T")[0],
+        title: formData.get("title") as string,
+        description: formData.get("description") as string,
+        status: formData.get("status") as "pending" | "completed",
+        type: formData.get("type") as "expense" | "income",
+        amount: parseFloat(formData.get("amount") as string),
+      };
+
+      if (editingItem) {
+        await financeService.updateItem(editingItem.id, financeData);
+        toast({
+          title: "Sucesso",
+          description: "Item atualizado com sucesso!",
+        });
+      } else {
+        await financeService.addItem(financeData);
+        toast({
+          title: "Sucesso",
+          description: "Item adicionado com sucesso!",
+        });
+      }
+
+      await Promise.all([loadItems(), loadTotals()]);
+      setIsOpen(false);
+      setEditingItem(null);
+      setDate(undefined);
+    } catch (error) {
+      console.log(error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao salvar o item.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir este item?")) return;
+
+    setIsLoading(true);
+
+    try {
+      await financeService.deleteItem(id);
+      await Promise.all([loadItems(), loadTotals()]);
+      toast({
+        title: "Sucesso",
+        description: "Item excluído com sucesso!",
+      });
+    } catch (error) {
+      console.log(error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o item.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEdit = (item: FinanceItem) => {
+    setEditingItem(item);
+    setDate(new Date(item.start_date));
+    setIsOpen(true);
+  };
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value);
+  };
+
   return (
-    <div className="container mx-auto p-8">
-      <h1 className="text-2xl font-bold">Bem vindo às suas finanças</h1>
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="container mx-auto py-8 space-y-6"
+    >
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Receitas</CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(totals.income)}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Despesas</CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {formatCurrency(totals.expense)}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Saldo</CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <div
+              className={cn(
+                "text-2xl font-bold",
+                totals.income - totals.expense >= 0
+                  ? "text-green-600"
+                  : "text-red-600"
+              )}
+            >
+              {formatCurrency(totals.income - totals.expense)}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </motion.div>
   );
 }
