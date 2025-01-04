@@ -221,6 +221,55 @@ export default function FinancesPage() {
           </CardContent>
         </Card>
       </div>
+
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Finanças</h1>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button>Novo Lançamento</Button>
+          </DialogTrigger>
+
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>
+                {editingItem ? "Editar Lançamento" : "Novo Lançamento"}
+              </DialogTitle>
+            </DialogHeader>
+          </DialogContent>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !date && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date
+                      ? format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+                      : "Selecione uma data"}
+                  </Button>
+                </PopoverTrigger>
+
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    locale={ptBR}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            
+          </form>
+        </Dialog>
+      </div>
     </motion.div>
   );
 }
