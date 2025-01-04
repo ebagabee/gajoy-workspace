@@ -11,7 +11,6 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { signIn } from "@/lib/auth";
-import { FunLoadingScreen } from "@/components/FunLoadingScreen";
 import { motion } from "framer-motion";
 
 export default function Home() {
@@ -45,7 +44,6 @@ export default function Home() {
 
   return (
     <>
-      {isLoading && <FunLoadingScreen />}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
