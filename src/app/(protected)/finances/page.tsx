@@ -336,6 +336,126 @@ export default function FinancesPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="rounded-md border"
+      >
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Data</TableHead>
+              <TableHead>Título</TableHead>
+              <TableHead>Descrição</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Valor</TableHead>
+              <TableHead className="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {items.map((item) => (
+              <motion.tr
+                key={item.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="group"
+              >
+                <TableCell>
+                  {format(new Date(item.start_date), "dd/MM/yyyy")}
+                </TableCell>
+                <TableCell>{item.title}</TableCell>
+                <TableCell>{item.description}</TableCell>
+                <TableCell>
+                  <span
+                    className={cn(
+                      "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+                      item.status === "completed"
+                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                        : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+                    )}
+                  >
+                    {item.status === "completed" ? "Concluída" : "Lançamento"}
+                  </span>
+                </TableCell>
+
+                <TableCell>
+                  <span
+                    className={cn(
+                      "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+                      item.type === "income"
+                        ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                        : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
+                    )}
+                  >
+                    {item.type === "income" ? "Receita" : "Despesa"}
+                  </span>
+                </TableCell>
+
+                <TableCell
+                  className={cn(
+                    "font-medium",
+                    item.type === "income" ? "text-green-600" : "text-red-600"
+                  )}
+                >
+                  {formatCurrency(item.amount)}
+                </TableCell>
+
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(item)}
+                      className="hover:text-blue-600"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(item.id)}
+                      className="text-red-500 hover:text-red-700 hover:bg-red-100 dark:hover:bg-red-900"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </motion.tr>
+            ))}
+            {items.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} className="text-center py-8">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-muted-foreground"
+                  >
+                    {isLoading ? (
+                      "Carregando..."
+                    ) : (
+                      <>
+                        Nenhum lançamento encontrado.
+                        <br />
+                        <Button
+                          variant="link"
+                          onClick={() => setIsOpen(true)}
+                          className="mt-2"
+                        >
+                          Adicionar novo lançamento
+                        </Button>
+                      </>
+                    )}
+                  </motion.div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </motion.div>
     </motion.div>
   );
 }
